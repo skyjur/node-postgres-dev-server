@@ -1,0 +1,15 @@
+{
+  "name": "postgresql-dev-server",
+  "version": "1.0.0",
+  "description": "Downloads postgresql binaries and start a server.",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "node download.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Skirmantas Jurgaitis",
+  "license": "ISC",
+  "dependencies": {
+    "progress": "^2.0.0"
+  }
+}
