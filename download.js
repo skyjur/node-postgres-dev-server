@@ -1,5 +1,5 @@
 const os = require('os');
-const http = require('http');
+const http = require('https');
 const fs = require('fs');
 const path = require('path');
 const child_process = require('child_process');
@@ -7,9 +7,9 @@ const process = require('process');
 const ProgressBar = require('progress');
 
 const DEFAULT_DOWNLOAD_URLS = {
-    linux: 'http://get.enterprisedb.com/postgresql/postgresql-10.3-1-linux-x64-binaries.tar.gz',
-    win32: 'http://get.enterprisedb.com/postgresql/postgresql-10.3-1-windows-x64-binaries.zip',
-    darwin: 'http://get.enterprisedb.com/postgresql/postgresql-10.3-1-osx-binaries.zip'
+    linux: 'https://raw.githubusercontent.com/skyjur/node-postgres-dev-server/master/binaries/postgresql-10.3-1-linux-x64-binaries.tar.gz',
+    win32: 'https://raw.githubusercontent.com/skyjur/node-postgres-dev-server/master/binaries/postgresql-10.3-1-windows-x64-binaries.zip',
+    darwin: 'https://raw.githubusercontent.com/skyjur/node-postgres-dev-server/master/binaries/postgresql-10.3-1-osx-binaries.zip'
 };
 
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Download binaries & repackage them with only necessary files.
 
 for VERSION in '10.3'; do
     wget http://get.enterprisedb.com/postgresql/postgresql-$VERSION-1-linux-x64-binaries.tar.gz
