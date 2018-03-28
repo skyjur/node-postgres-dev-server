@@ -9,6 +9,10 @@
   },
   "author": "Skirmantas Jurgaitis",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skyjur/node-postgres-dev-server.git"
+  },
   "dependencies": {
     "progress": "^2.0.0"
   }
