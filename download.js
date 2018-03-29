@@ -9,7 +9,8 @@ const ProgressBar = require('progress');
 const DEFAULT_DOWNLOAD_URLS = {
     linux: 'https://raw.githubusercontent.com/skyjur/node-postgres-dev-server/master/binaries/postgresql-10.3-1-linux-x64-binaries.tar.gz',
     win32: 'https://raw.githubusercontent.com/skyjur/node-postgres-dev-server/master/binaries/postgresql-10.3-1-windows-x64-binaries.zip',
-    darwin: 'https://raw.githubusercontent.com/skyjur/node-postgres-dev-server/master/binaries/postgresql-10.3-1-osx-binaries.zip'
+    darwin: 'https://raw.githubusercontent.com/skyjur/node-postgres-dev-server/master/binaries/postgresql-10.3-1-osx-binaries.zip',
+    linux: 'https://raw.githubusercontent.com/skyjur/node-postgres-dev-server/master/binaries/postgresql-10.3-1-windows-x64-binaries.zip'
 };
 
 
@@ -73,8 +74,8 @@ function call(command, args) {
 }
 
 function extract(filepath, location) {
-    if(os.platform() == 'win32') {
-        return call('PowerShell', ['-Command', `"Expand-Archive -Path' \\"${filepath}\\" -DestinationPath \\"${location}\\""`]);
+    if(1 || os.platform() == 'win32') {
+        return call('PowerShell', ['-Command', `Expand-Archive -Path "${filepath}" -DestinationPath "${location}"`]);
     } else if(/tar.gz$/.test(filepath)) {
         return call('tar', ['-x', '-f', filepath, '-C', location, '--overwrite']);
     } else if(/zip$/.test(filepath)) {

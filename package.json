@@ -1,6 +1,6 @@
 {
   "name": "postgresql-dev-server",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Downloads postgresql binaries and start a dev server.",
   "main": "index.js",
   "scripts": {
@@ -15,5 +15,8 @@
   },
   "dependencies": {
     "progress": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^9.6.0"
   }
 }

@@ -19,7 +19,7 @@ added 2 packages in 4.578s
 
 Start a server:
 ```js
-require('postgres-dev-server').start({
+require('postgresql-dev-server').start({
     fsync: 'off', // tests will run faster
     port: '8432',
     pgdata: 'var/postgres',
