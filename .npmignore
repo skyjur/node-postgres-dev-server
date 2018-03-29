@@ -2,3 +2,5 @@ pgsql
 binaries
 var
 .vscode
+*zip
+*tar.gz
