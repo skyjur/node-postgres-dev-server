@@ -87,7 +87,7 @@ function extract(filepath: string, location: string) {
     }
 }
 
-function ensureHaveBinaries(location: string) {
+export function ensureHaveBinaries(location: string) {
     if(fs.existsSync(path.join(location, 'pgsql', 'bin'))) {
         return Promise.resolve();
     } else {

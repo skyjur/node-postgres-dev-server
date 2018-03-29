@@ -1,7 +1,8 @@
-import * as path from 'path';
-import * as fs from 'fs';
-import * as process from 'process';
-import * as child_process from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import process from 'process';
+import child_process from 'child_process';
+import {ensureHaveBinaries} from './download';
 
 
 const bin = {
@@ -12,6 +13,7 @@ const bin = {
 };
 
 export const configDefaults = {
+    pipe: false as boolean,
     fsync: 'off',
     pgdata: process.env.PGDATA || 'var/postgres',
     port: process.env.PGPORT || '8432',
@@ -20,45 +22,54 @@ export const configDefaults = {
 
 export type Config = typeof configDefaults;
 
-function start(userConfig?: Config) : Promise<child_process.ChildProcess> {
+async function start(userConfig?: Partial<Config>) : Promise<child_process.ChildProcess> {
     var config = {...configDefaults, ...(userConfig || {})};
-    return ensureInitDb(config.pgdata).then((isNew) => {
-        return new Promise<child_process.ChildProcess>((resolve, reject) => {
-            var p = child_process.spawn(bin.postgres, ['-D', config.pgdata, '-c', 'fsync=' + config.fsync, '-p', config.port]);
-            var ready = false;
-            setTimeout(() => {
-                if(!ready) { p.kill(); }  // kill if fails to start
-            }, 2000);
-            p.stderr.on('data', chunk => {
-                let chunkStr = chunk.toString();
-                if(/database system is ready to accept connections/.test(chunkStr)) {
-                    if(isNew) {         
-                        runInitSql(config)
-                            .then(success)
-                            .catch((e) => {
-                                p.kill();
-                            });
-                    } else {
-                        success();
-                    }
-                }
-                if(/ERROR/.test(chunkStr)) {
-                    console.error(`[PG ERROR]`, chunkStr);
-                }
-            });
-            p.on('close', (code) => {
-                if(!ready) {
-                    reject(new Error('Failed to start postgresql database'));
-                } else {
-                    console.log('Closing postgresql server');
-                }
-            });
+    await ensureHaveBinaries(__dirname);
+    var isNew = await ensureInitDb(config.pgdata);
+    var proc = await startServer(config);
+    if(isNew) {
+        try {
+            await runInitSql(config);
+        } catch (e) {
+            proc.kill();
+            throw e;
+        }
+    }
+    return proc;
+}
 
-            function success() {
-                ready = true;
-                resolve(p);
+function startServer(config: Config) : Promise<child_process.ChildProcess> {
+    return new Promise((resolve, reject) => {
+        var p = child_process.spawn(bin.postgres, ['-D', config.pgdata, '-c', 'fsync=' + config.fsync, '-p', config.port]);
+        if(config.pipe) {
+            p.stderr.pipe(process.stderr);
+            p.stdout.pipe(process.stdout);
+        }
+        var ready = false;
+        setTimeout(() => {
+            if(!ready) { p.kill(); }  // kill if fails to start
+        }, 2000);
+        p.stderr.on('data', chunk => {
+            let chunkStr = chunk.toString();
+            if(/database system is ready to accept connections/.test(chunkStr)) {
+                success();
+            }
+            if(/ERROR/.test(chunkStr)) {
+                console.error(`[PG ERROR]`, chunkStr);
             }
         });
+        p.on('close', (code) => {
+            if(!ready) {
+                reject(new Error('Failed to start postgresql database'));
+            } else {
+                console.log('Closing postgresql server');
+            }
+        });
+
+        function success() {
+            ready = true;
+            resolve(p);
+        }
     });
 }
 
@@ -70,14 +81,11 @@ function ensureInitDb(pgdata: string) {
     }
 }
 
-function runInitSql(config: Config) {
+async function runInitSql(config: Config) {
     var p: Promise<any> = Promise.resolve();
     for(var sql of config.initSql) {
-        p = p.then(() => {
-            return call(bin.psql, ['-p', config.port, '-h', '127.0.0.1', 'postgres', '-c', sql]);
-        });
+        await call(bin.psql, ['-p', config.port, '-h', '127.0.0.1', 'postgres', '-c', sql]);
     }
-    return p;
 }
 
 function call(command: string, args: string[]) {
@@ -99,7 +107,12 @@ function call(command: string, args: string[]) {
 export default start;
 
 if(require.main == module) {
-    start().then(proc => {
-        console.log('Postgresql server', `PID=${proc.pid}`, `PORT=${configDefaults.port}`);
+    start({pipe: true}).then(pg_proc => {
+        pg_proc.on('close', () => {
+            process.exit();
+        });
+        process.on('SIGINT', () => {
+            pg_proc.kill('SIGINT');
+        });
     });
 }
