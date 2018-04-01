@@ -84,7 +84,7 @@ function ensureInitDb(pgdata: string) {
 async function runInitSql(config: Config) {
     var p: Promise<any> = Promise.resolve();
     for(var sql of config.initSql) {
-        await call(bin.psql, ['-p', config.port, '-h', '127.0.0.1', 'postgres', '-c', sql]);
+        await call(bin.psql, ['-p', config.port, '-h', '127.0.0.1', '-d', 'postgres', '-c', sql]);
     }
 }
 
