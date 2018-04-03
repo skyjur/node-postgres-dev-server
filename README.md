@@ -1,26 +1,29 @@
 # node-postgresql-dev-server
 
+Start development oriented postgresql server with passwordless logins from npm package.
+
 Install:
 ```
 $ npm i postgresql-dev-server
-
-> postgresql-dev-server@1.0.1 postinstall /home/ski/projects/testp/node_modules/postgresql-dev-server
-> node download.js
-
- postgresql-10.3-1-linux-x64-binaries.tar.gz [====================] 10014612/bps 100% 0.0s
-Extracting postgresql...
-npm notice created a lockfile as package-lock.json. You should commit this file.
-npm WARN testp@1.0.0 No description
-npm WARN testp@1.0.0 No repository field.
-
-+ postgresql-dev-server@1.0.1
-added 2 packages in 4.578s
 ```
 
-Start a server:
+Start a postgresql server cli:
+
+```
+$ node node_modules/postgresql-dev-server/index.js
+```
+
+Server runs on port 8432 by default and has passwordless logins:
+
+```
+node_modules/postgresql-dev-server/pgsql/bin/psql -p 8432 -h 127.0.0.1 -d postgres
+```
+
+Start postgresql server from js:
+
 ```js
-require('postgresql-dev-server').start({
-    fsync: 'off', // tests will run faster
+require('postgresql-dev-server').default({
+    fsync: 'off', // this is default in order to make db spin faster
     port: '8432',
     pgdata: 'var/postgres',
     initSql: [
@@ -29,4 +32,29 @@ require('postgresql-dev-server').start({
 }).then((p) => {
     console.log('Ready!', `PID=${p.pid}`);
 });
+```
+
+In my project, I start development database, if db configs are not given:
+
+```js
+import {Client} from 'pg';
+
+var pgproc?: ChildProcess;
+
+async function getDbClient() {
+    if(env.POSTGRES_URI) {
+        return new Pool({
+            connectionString: env.POSTGRES_URI
+        })
+    } else {
+        var await require('postgresql-dev-server').default({
+            initSql: [
+                'create database myproject'
+            ]
+        });
+        return new Pool({
+            connectionString: 'postgresql://127.0.0.1:8432/myproject'
+        })
+    }
+}
 ```
